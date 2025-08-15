@@ -1215,6 +1215,9 @@ void MainWindow::on_pushButton_clicked()
     fbb.Finish(offset);
     uint8_t* raw = fbb.GetBufferPointer();
     int size = fbb.GetSize();
+    std::filesystem::copy(std::filesystem::path(ui->label_3->text().toStdString()),
+                          std::filesystem::path(ui->label_5->text().toStdString()) / "romfs",
+                          std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing);
     if (!std::filesystem::exists(std::filesystem::path(ui->label_5->text().toStdString()) / "romfs/pokemon/catalog/catalog"))
     {
         std::filesystem::create_directories(std::filesystem::path(ui->label_5->text().toStdString()) / "romfs/pokemon/catalog/catalog");
@@ -1223,9 +1226,6 @@ void MainWindow::on_pushButton_clicked()
     out.write(reinterpret_cast<char*>(raw), size);
     out.close();
     std::filesystem::copy(std::filesystem::path(ui->label_4->text().toStdString()) / "pokemon/data",
-                          std::filesystem::path(ui->label_5->text().toStdString()) / "romfs/pokemon/data",
-                          std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing);
-    std::filesystem::copy(std::filesystem::path(ui->label_3->text().toStdString()) / "pokemon/data",
                           std::filesystem::path(ui->label_5->text().toStdString()) / "romfs/pokemon/data",
                           std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing);
     ui->pushButton->setEnabled(false);
