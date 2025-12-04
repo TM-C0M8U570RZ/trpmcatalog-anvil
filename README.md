@@ -12,6 +12,13 @@ If you want a server that allows it, the only one I know of besides literal p-wo
 https://discord.gg/xkT2Cpv3nE
 
 The correct folder structure for mods is:
+
 `mod1/romfs/pokemon/catalog/catalog/poke_resource_table.trpmcatalog`
+
 `mod2/romfs/pokemon/catalog/catalog/poke_resource_table.trpmcatalog`
+
 In the file picker, select the `romfs` folder.  
+
+# BUILDING
+
+To build, you need to install the flatbuffers library as well as Qt.  Open the CMakeLists.txt in Qt Creator and click the build button.  
