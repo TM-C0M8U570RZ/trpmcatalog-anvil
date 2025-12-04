@@ -13,7 +13,7 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
-
+ // Handle clicking the Open Left Hand Mod ROMFS button
 void MainWindow::on_actionOpen_Left_Hand_Mod_romfs_triggered()
 {
     std::filesystem::path dirPath = QFileDialog::getExistingDirectory(this, "Open the source mod").toStdString();
@@ -38,6 +38,7 @@ void MainWindow::on_actionOpen_Left_Hand_Mod_romfs_triggered()
     }
 }
 
+// Map the internal ID to the Pokémon Species
 std::vector<std::string> MainWindow::getSpeciesMap()
 {
     return {"Egg",
@@ -1068,6 +1069,7 @@ std::vector<std::string> MainWindow::getSpeciesMap()
             "Sinistcha"};
 }
 
+// Find out what each mod adds
 void MainWindow::calculateMerge()
 {
     std::vector<std::string> sMap = getSpeciesMap();
@@ -1147,6 +1149,7 @@ void MainWindow::calculateMerge()
     ui->actionSet_Output_Will_create_romfs_subfolder->setEnabled(true);
 }
 
+ // Handle clicking the Open Right Hand Mod ROMFS button
 void MainWindow::on_actionOpen_Right_Hand_Mod_romfs_triggered()
 {
     std::filesystem::path dirPath = QFileDialog::getExistingDirectory(this, "Open the mod to append").toStdString();
@@ -1171,7 +1174,7 @@ void MainWindow::on_actionOpen_Right_Hand_Mod_romfs_triggered()
     }
 }
 
-
+// Set the output folder
 void MainWindow::on_actionSet_Output_Will_create_romfs_subfolder_triggered()
 {
     ui->label_5->setText(QFileDialog::getExistingDirectory(this, "Open the output folder"));
@@ -1179,7 +1182,7 @@ void MainWindow::on_actionSet_Output_Will_create_romfs_subfolder_triggered()
     ui->pushButton->setEnabled(true);
 }
 
-
+// Handle clicking the giant MERGE button
 void MainWindow::on_pushButton_clicked()
 {
     for (uint64_t i = 0; i < rhs.table.size(); i++)
@@ -1240,13 +1243,13 @@ void MainWindow::on_pushButton_clicked()
     ui->listWidget_3->clear();
 }
 
-
+// Handle opening the guide on how to mod Pokémon on Linux
 void MainWindow::on_actionOpen_Linux_Guide_Video_triggered()
 {
     QDesktopServices::openUrl(QUrl("https://youtu.be/IAlbnlxP_ec"));
 }
 
-
+// Handle opening the "About" window
 void MainWindow::on_actionAbout_triggered()
 {
     setEnabled(false);
