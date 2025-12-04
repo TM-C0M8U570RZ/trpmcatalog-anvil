@@ -15,6 +15,7 @@ AboutWindow::~AboutWindow()
     delete ui;
 }
 
+// Re-enable main window on close.  
 void AboutWindow::closeEvent(QCloseEvent* evt)
 {
     QWidget::closeEvent(evt);
