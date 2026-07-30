@@ -46,8 +46,8 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    Titan::Resource::CatalogT lhs;
-    Titan::Resource::CatalogT rhs;
+    Titan::Resource::CatalogT* lhs;
+    Titan::Resource::CatalogT* rhs;
     QErrorMessage* em;
     std::shared_ptr<AboutWindow> aw;
 };

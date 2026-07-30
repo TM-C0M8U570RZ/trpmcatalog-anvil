@@ -5,6 +5,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    lhs = nullptr;
+    rhs = nullptr;
     ui->setupUi(this);
     em = new QErrorMessage(this);
 }
@@ -12,8 +14,10 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+    if (lhs) delete lhs;
+    if (rhs) delete rhs;
 }
- // Handle clicking the Open Left Hand Mod ROMFS button
+
 void MainWindow::on_actionOpen_Left_Hand_Mod_romfs_triggered()
 {
     std::filesystem::path dirPath = QFileDialog::getExistingDirectory(this, "Open the source mod").toStdString();
@@ -30,7 +34,9 @@ void MainWindow::on_actionOpen_Left_Hand_Mod_romfs_triggered()
     std::vector<char> raw(std::filesystem::file_size(dirPath / "pokemon/catalog/catalog/poke_resource_table.trpmcatalog"), 0);
     std::ifstream in(dirPath / "pokemon/catalog/catalog/poke_resource_table.trpmcatalog", std::ios::binary);
     in.read(raw.data(), raw.size());
-    Titan::Resource::GetMutableCatalog(raw.data())->UnPackTo(&lhs);
+    if (lhs) delete lhs;
+    lhs = new Titan::Resource::CatalogT;
+    Titan::Resource::GetMutableCatalog(raw.data())->UnPackTo(lhs);
     ui->label_3->setText(QString(dirPath.c_str()));
     if (!ui->label_4->text().toStdString().empty())
     {
@@ -38,7 +44,6 @@ void MainWindow::on_actionOpen_Left_Hand_Mod_romfs_triggered()
     }
 }
 
-// Map the internal ID to the Pokémon Species
 std::vector<std::string> MainWindow::getSpeciesMap()
 {
     return {"Egg",
@@ -1069,21 +1074,20 @@ std::vector<std::string> MainWindow::getSpeciesMap()
             "Sinistcha"};
 }
 
-// Find out what each mod adds
 void MainWindow::calculateMerge()
 {
     std::vector<std::string> sMap = getSpeciesMap();
     ui->listWidget->clear();
     ui->listWidget_2->clear();
     ui->listWidget_3->clear();
-    for (uint64_t i = 0; i < lhs.table.size(); i++)
+    for (uint64_t i = 0; i < lhs->table.size(); i++)
     {
         uint64_t indexOfMatch = std::numeric_limits<uint64_t>::max();
-        for (uint64_t j = 0; j < rhs.table.size(); j++)
+        for (uint64_t j = 0; j < rhs->table.size(); j++)
         {
-            if (lhs.table[i]->species_info->species == rhs.table[j]->species_info->species &&
-                lhs.table[i]->species_info->form == rhs.table[j]->species_info->form &&
-                lhs.table[i]->species_info->gender == rhs.table[j]->species_info->gender)
+            if (lhs->table[i]->species_info->species == rhs->table[j]->species_info->species &&
+                lhs->table[i]->species_info->form == rhs->table[j]->species_info->form &&
+                lhs->table[i]->species_info->gender == rhs->table[j]->species_info->gender)
             {
                 indexOfMatch = j;
                 break;
@@ -1094,27 +1098,27 @@ void MainWindow::calculateMerge()
             std::string info;
             try
             {
-                info = "Species: " + sMap.at(lhs.table[i]->species_info->species) + "\n"
-                       "Form: " + std::to_string(lhs.table[i]->species_info->form) + "\n"
-                       "Gender: " + ((lhs.table[i]->species_info->gender) ? ("Female") : ("Male"));
+                info = "Species: " + sMap.at(lhs->table[i]->species_info->species) + "\n"
+                       "Form: " + std::to_string(lhs->table[i]->species_info->form) + "\n"
+                       "Gender: " + ((lhs->table[i]->species_info->gender) ? ("Female") : ("Male"));
             }
             catch (std::out_of_range& oor)
             {
-                info = "Species: " + std::to_string(lhs.table[i]->species_info->species) + "\n"
-                       "Form: " + std::to_string(lhs.table[i]->species_info->form) + "\n"
-                       "Gender: " + ((lhs.table[i]->species_info->gender) ? ("Female") : ("Male"));
+                info = "Species: " + std::to_string(lhs->table[i]->species_info->species) + "\n"
+                       "Form: " + std::to_string(lhs->table[i]->species_info->form) + "\n"
+                       "Gender: " + ((lhs->table[i]->species_info->gender) ? ("Female") : ("Male"));
             }
             ui->listWidget->addItem(QString::fromStdString((info)));
         }
     }
-    for (uint64_t i = 0; i < rhs.table.size(); i++)
+    for (uint64_t i = 0; i < rhs->table.size(); i++)
     {
         uint64_t indexOfMatch = std::numeric_limits<uint64_t>::max();
-        for (uint64_t j = 0; j < lhs.table.size(); j++)
+        for (uint64_t j = 0; j < lhs->table.size(); j++)
         {
-            if (rhs.table[i]->species_info->species == lhs.table[j]->species_info->species &&
-                rhs.table[i]->species_info->form == lhs.table[j]->species_info->form &&
-                rhs.table[i]->species_info->gender == lhs.table[j]->species_info->gender)
+            if (rhs->table[i]->species_info->species == lhs->table[j]->species_info->species &&
+                rhs->table[i]->species_info->form == lhs->table[j]->species_info->form &&
+                rhs->table[i]->species_info->gender == lhs->table[j]->species_info->gender)
             {
                 indexOfMatch = j;
                 break;
@@ -1125,15 +1129,15 @@ void MainWindow::calculateMerge()
             std::string info;
             try
             {
-                info = "Species: " + sMap.at(rhs.table[i]->species_info->species) + "\n"
-                       "Form: " + std::to_string(rhs.table[i]->species_info->form) + "\n"
-                       "Gender: " + ((rhs.table[i]->species_info->gender) ? ("Female") : ("Male"));
+                info = "Species: " + sMap.at(rhs->table[i]->species_info->species) + "\n"
+                       "Form: " + std::to_string(rhs->table[i]->species_info->form) + "\n"
+                       "Gender: " + ((rhs->table[i]->species_info->gender) ? ("Female") : ("Male"));
             }
             catch (std::out_of_range& oor)
             {
-                info = "Species: " + std::to_string(rhs.table[i]->species_info->species) + "\n"
-                       "Form: " + std::to_string(rhs.table[i]->species_info->form) + "\n"
-                       "Gender: " + ((rhs.table[i]->species_info->gender) ? ("Female") : ("Male"));
+                info = "Species: " + std::to_string(rhs->table[i]->species_info->species) + "\n"
+                       "Form: " + std::to_string(rhs->table[i]->species_info->form) + "\n"
+                       "Gender: " + ((rhs->table[i]->species_info->gender) ? ("Female") : ("Male"));
             }
             ui->listWidget_2->addItem(QString::fromStdString((info)));
         }
@@ -1149,7 +1153,6 @@ void MainWindow::calculateMerge()
     ui->actionSet_Output_Will_create_romfs_subfolder->setEnabled(true);
 }
 
- // Handle clicking the Open Right Hand Mod ROMFS button
 void MainWindow::on_actionOpen_Right_Hand_Mod_romfs_triggered()
 {
     std::filesystem::path dirPath = QFileDialog::getExistingDirectory(this, "Open the mod to append").toStdString();
@@ -1166,7 +1169,9 @@ void MainWindow::on_actionOpen_Right_Hand_Mod_romfs_triggered()
     std::vector<char> raw(std::filesystem::file_size(dirPath / "pokemon/catalog/catalog/poke_resource_table.trpmcatalog"), 0);
     std::ifstream in(dirPath / "pokemon/catalog/catalog/poke_resource_table.trpmcatalog", std::ios::binary);
     in.read(raw.data(), raw.size());
-    Titan::Resource::GetMutableCatalog(raw.data())->UnPackTo(&rhs);
+    if (rhs) delete rhs;
+    rhs = new Titan::Resource::CatalogT;
+    Titan::Resource::GetMutableCatalog(raw.data())->UnPackTo(rhs);
     ui->label_4->setText(QString(dirPath.c_str()));
     if (!ui->label_3->text().toStdString().empty())
     {
@@ -1174,7 +1179,7 @@ void MainWindow::on_actionOpen_Right_Hand_Mod_romfs_triggered()
     }
 }
 
-// Set the output folder
+
 void MainWindow::on_actionSet_Output_Will_create_romfs_subfolder_triggered()
 {
     ui->label_5->setText(QFileDialog::getExistingDirectory(this, "Open the output folder"));
@@ -1182,17 +1187,17 @@ void MainWindow::on_actionSet_Output_Will_create_romfs_subfolder_triggered()
     ui->pushButton->setEnabled(true);
 }
 
-// Handle clicking the giant MERGE button
+
 void MainWindow::on_pushButton_clicked()
 {
-    for (uint64_t i = 0; i < rhs.table.size(); i++)
+    for (uint64_t i = 0; i < rhs->table.size(); i++)
     {
         uint64_t indexOfMatch = std::numeric_limits<uint64_t>::max();
-        for (uint64_t j = 0; j < lhs.table.size(); j++)
+        for (uint64_t j = 0; j < lhs->table.size(); j++)
         {
-            if (rhs.table[i]->species_info->species == lhs.table[j]->species_info->species &&
-                rhs.table[i]->species_info->form == lhs.table[j]->species_info->form &&
-                rhs.table[i]->species_info->gender == lhs.table[j]->species_info->gender)
+            if (rhs->table[i]->species_info->species == lhs->table[j]->species_info->species &&
+                rhs->table[i]->species_info->form == lhs->table[j]->species_info->form &&
+                rhs->table[i]->species_info->gender == lhs->table[j]->species_info->gender)
             {
                 indexOfMatch = j;
                 break;
@@ -1200,16 +1205,16 @@ void MainWindow::on_pushButton_clicked()
         }
         if (indexOfMatch == std::numeric_limits<uint64_t>::max())
         {
-            lhs.table.push_back(rhs.table[i]);
+            lhs->table.push_back(rhs->table[i]);
         }
     }
     flatbuffers::FlatBufferBuilder fbb;
     std::vector<flatbuffers::Offset<Titan::Resource::CatalogEntry>> entryVect;
-    for (uint64_t i = 0; i < lhs.table.size(); i++)
+    for (uint64_t i = 0; i < lhs->table.size(); i++)
     {
-        entryVect.push_back(Titan::Resource::CatalogEntry::Pack(fbb, lhs.table[i].get()));
+        entryVect.push_back(Titan::Resource::CatalogEntry::Pack(fbb, lhs->table[i].get()));
     }
-    flatbuffers::Offset<Titan::Resource::VersionInfo> vInf = Titan::Resource::VersionInfo::Pack(fbb, lhs.version.get());
+    flatbuffers::Offset<Titan::Resource::VersionInfo> vInf = Titan::Resource::VersionInfo::Pack(fbb, lhs->version.get());
     auto entries = fbb.CreateVector(entryVect);
     Titan::Resource::CatalogBuilder cb(fbb);
     cb.add_version(vInf);
@@ -1233,6 +1238,7 @@ void MainWindow::on_pushButton_clicked()
                           std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing);
     ui->pushButton->setEnabled(false);
     ui->actionSet_Output_Will_create_romfs_subfolder->setEnabled(false);
+    qDebug() << QUrl::fromLocalFile(ui->label_5->text()).isValid();
     QDesktopServices::openUrl(QUrl::fromLocalFile(ui->label_5->text()));
     em->showMessage("Mod saved to " + ui->label_5->text());
     ui->label_3->setText("");
@@ -1241,15 +1247,19 @@ void MainWindow::on_pushButton_clicked()
     ui->listWidget->clear();
     ui->listWidget_2->clear();
     ui->listWidget_3->clear();
+    delete lhs;
+    lhs = nullptr;
+    delete rhs;
+    rhs = nullptr;
 }
 
-// Handle opening the guide on how to mod Pokémon on Linux
+
 void MainWindow::on_actionOpen_Linux_Guide_Video_triggered()
 {
     QDesktopServices::openUrl(QUrl("https://youtu.be/IAlbnlxP_ec"));
 }
 
-// Handle opening the "About" window
+
 void MainWindow::on_actionAbout_triggered()
 {
     setEnabled(false);
