@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QProcess>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -1238,8 +1239,6 @@ void MainWindow::on_pushButton_clicked()
                           std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing);
     ui->pushButton->setEnabled(false);
     ui->actionSet_Output_Will_create_romfs_subfolder->setEnabled(false);
-    qDebug() << QUrl::fromLocalFile(ui->label_5->text()).isValid();
-    QDesktopServices::openUrl(QUrl::fromLocalFile(ui->label_5->text()));
     em->showMessage("Mod saved to " + ui->label_5->text());
     ui->label_3->setText("");
     ui->label_4->setText("");
